@@ -33,10 +33,10 @@ jobs:
           libcurl4-openssl-dev \
           librrd-dev \
           liblzo2-dev \
-          libblake3-dev \
-          libwhisper-dev \
           libxml2-dev \
-          libglib2.0-dev
+          libglib2.0-dev \
+          zlib1g-dev \
+          liblzma-dev
 
     - name: Run configure
       run: |
