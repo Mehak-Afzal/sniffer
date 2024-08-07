@@ -3,7 +3,7 @@ name: VoIPmonitor CI
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
     branches:
       - main
@@ -64,7 +64,7 @@ jobs:
 
     - name: Build VoIPmonitor
       run: |
-        mkdir build
+        mkdir -p build
         cd build
         cmake ..
         make
@@ -84,4 +84,3 @@ jobs:
       run: |
         ps aux | grep voipmonitor
         sudo netstat -tuln | grep 5029  # Adjust this port if necessary
-
