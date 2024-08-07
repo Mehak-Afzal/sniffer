@@ -16,21 +16,31 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Install dependencies
+    - name: Install Docker
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake g++ libpcap-dev libmysqlclient-dev libcurl4-openssl-dev libssl-dev mysql-server
+        sudo apt-get install -y docker.io
 
-    - name: Initialize MySQL
+    - name: Start MySQL Docker Container
       run: |
-        sudo systemctl stop mysql
-        sudo mysqld --initialize-insecure --user=mysql
-        sudo systemctl start mysql
-        sudo mysql --execute="ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'rootpassword';"
-        sudo mysql --execute="CREATE DATABASE IF NOT EXISTS voipmonitor;"
-        sudo mysql --execute="CREATE USER 'voipuser'@'localhost' IDENTIFIED BY 'voippassword';"
-        sudo mysql --execute="GRANT ALL PRIVILEGES ON voipmonitor.* TO 'voipuser'@'localhost';"
-        sudo mysql --execute="FLUSH PRIVILEGES;"
+        sudo docker run --name mysql -e MYSQL_ROOT_PASSWORD=rootpassword -e MYSQL_DATABASE=voipmonitor -e MYSQL_USER=voipuser -e MYSQL_PASSWORD=voippassword -p 3306:3306 -d mysql:8.0
+
+    - name: Wait for MySQL to be ready
+      run: |
+        for i in {1..30}; do
+          if sudo docker exec mysql mysqladmin ping -h"localhost" --silent; then
+            echo "MySQL is up and running!"
+            break
+          else
+            echo "Waiting for MySQL..."
+            sleep 5
+          fi
+        done
+
+    - name: Install Build Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake g++ libpcap-dev libmysqlclient-dev libcurl4-openssl-dev libssl-dev
 
     - name: Build VoIPmonitor
       run: |
