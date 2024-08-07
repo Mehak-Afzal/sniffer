@@ -16,7 +16,12 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Clean up package lists
+    - name: Remove conflicting packages
+      run: |
+        sudo apt-get remove -y containerd containerd.io
+        sudo apt-get autoremove -y
+
+    - name: Clean up and update
       run: |
         sudo apt-get clean
         sudo rm -rf /var/lib/apt/lists/*
@@ -79,3 +84,4 @@ jobs:
       run: |
         ps aux | grep voipmonitor
         sudo netstat -tuln | grep 5029  # Adjust this port if necessary
+
