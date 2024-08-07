@@ -17,17 +17,19 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Set up MySQL
-      uses: mirromutth/mysql-action@v1
-      with:
-        mysql database: voipmonitor
-        mysql user: root
-        mysql password: root
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y mysql-server
+        sudo service mysql start
+        sudo mysql -e "CREATE DATABASE voipmonitor;"
+        sudo mysql -e "CREATE USER 'voipuser'@'localhost' IDENTIFIED BY 'voippassword';"
+        sudo mysql -e "GRANT ALL PRIVILEGES ON voipmonitor.* TO 'voipuser'@'localhost';"
+        sudo mysql -e "FLUSH PRIVILEGES;"
 
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake g++ libpcap-dev libmysqlclient-dev libcurl4-openssl-dev
-        sudo apt-get install -y mariadb-server mariadb-client
+        sudo apt-get install -y cmake g++ libpcap-dev libmysqlclient-dev libcurl4-openssl-dev libssl-dev
 
     - name: Build VoIPmonitor
       run: |
@@ -43,9 +45,11 @@ jobs:
 
     - name: Run VoIPmonitor
       run: |
+        sudo mkdir -p /etc/voipmonitor
+        echo "user=root\npassword=root\nhost=localhost\ndatabase=voipmonitor" | sudo tee /etc/voipmonitor.conf
         sudo build/voipmonitor --config-file /etc/voipmonitor.conf --pidfile /var/run/voipmonitor.pid --daemon
 
     - name: Verify VoIPmonitor is running
       run: |
         ps aux | grep voipmonitor
-        sudo netstat -tuln | grep 5029  # Change this to the actual port VoIPmonitor uses
+        sudo netstat -tuln | grep 5029  # Adjust this port if necessary
