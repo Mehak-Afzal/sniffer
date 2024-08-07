@@ -1,0 +1,51 @@
+name: VoIPmonitor CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up MySQL
+      uses: mirromutth/mysql-action@v1
+      with:
+        mysql database: voipmonitor
+        mysql user: root
+        mysql password: root
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake g++ libpcap-dev libmysqlclient-dev libcurl4-openssl-dev
+        sudo apt-get install -y mariadb-server mariadb-client
+
+    - name: Build VoIPmonitor
+      run: |
+        mkdir build
+        cd build
+        cmake ..
+        make
+
+    - name: Run tests
+      run: |
+        cd build
+        make test
+
+    - name: Run VoIPmonitor
+      run: |
+        sudo build/voipmonitor --config-file /etc/voipmonitor.conf --pidfile /var/run/voipmonitor.pid --daemon
+
+    - name: Verify VoIPmonitor is running
+      run: |
+        ps aux | grep voipmonitor
+        sudo netstat -tuln | grep 5029  # Change this to the actual port VoIPmonitor uses
