@@ -3,10 +3,10 @@ name: VoIPmonitor CI
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
     branches:
-      - master
+      - main
 
 jobs:
   build-and-test:
@@ -15,11 +15,11 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
-        
+
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake g++ libpcap-dev libmysqlclient-dev libcurl4-openssl-dev libssl-dev
+        sudo apt-get install -y cmake g++ libpcap-dev libmysqlclient-dev libcurl4-openssl-dev libssl-dev mysql-server
 
     - name: Configure MySQL
       run: |
@@ -46,7 +46,7 @@ jobs:
     - name: Run VoIPmonitor
       run: |
         sudo mkdir -p /etc/voipmonitor
-        echo "user=root\npassword=root\nhost=localhost\ndatabase=voipmonitor" | sudo tee /etc/voipmonitor.conf
+        echo -e "user=root\npassword=rootpassword\nhost=localhost\ndatabase=voipmonitor" | sudo tee /etc/voipmonitor.conf
         sudo build/voipmonitor --config-file /etc/voipmonitor.conf --pidfile /var/run/voipmonitor.pid --daemon
 
     - name: Verify VoIPmonitor is running
