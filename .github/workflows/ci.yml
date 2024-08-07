@@ -3,10 +3,10 @@ name: VoIPmonitor CI
 on:
   push:
     branches:
-      - main
+      - master
   pull_request:
     branches:
-      - main
+      - master
 
 jobs:
   build-and-test:
@@ -24,10 +24,12 @@ jobs:
     - name: Configure MySQL
       run: |
         sudo service mysql start
-        sudo mysql --user=root --execute="CREATE DATABASE IF NOT EXISTS voipmonitor;"
-        sudo mysql --user=root --execute="CREATE USER 'voipuser'@'localhost' IDENTIFIED BY 'voippassword';"
-        sudo mysql --user=root --execute="GRANT ALL PRIVILEGES ON voipmonitor.* TO 'voipuser'@'localhost';"
-        sudo mysql --user=root --execute="FLUSH PRIVILEGES;"
+        sudo mysql -e "UPDATE mysql.user SET authentication_string = PASSWORD('rootpassword') WHERE User = 'root' AND Host = 'localhost';"
+        sudo mysql -e "FLUSH PRIVILEGES;"
+        sudo mysql -e "CREATE DATABASE IF NOT EXISTS voipmonitor;"
+        sudo mysql -e "CREATE USER 'voipuser'@'localhost' IDENTIFIED BY 'voippassword';"
+        sudo mysql -e "GRANT ALL PRIVILEGES ON voipmonitor.* TO 'voipuser'@'localhost';"
+        sudo mysql -e "FLUSH PRIVILEGES;"
 
     - name: Build VoIPmonitor
       run: |
