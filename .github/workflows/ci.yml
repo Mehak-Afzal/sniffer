@@ -6,7 +6,7 @@ on:
       - master
   pull_request:
     branches:
-      - master
+      - main
 
 jobs:
   build-and-test:
@@ -21,13 +21,16 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y cmake g++ libpcap-dev libmysqlclient-dev libcurl4-openssl-dev libssl-dev mysql-server
 
-    - name: Configure MySQL
+    - name: Initialize MySQL
       run: |
-        sudo service mysql start
-        sudo mysql --user=root --execute="CREATE DATABASE IF NOT EXISTS voipmonitor;"
-        sudo mysql --user=root --execute="CREATE USER 'voipuser'@'localhost' IDENTIFIED BY 'voippassword';"
-        sudo mysql --user=root --execute="GRANT ALL PRIVILEGES ON voipmonitor.* TO 'voipuser'@'localhost';"
-        sudo mysql --user=root --execute="FLUSH PRIVILEGES;"
+        sudo systemctl stop mysql
+        sudo mysqld --initialize-insecure --user=mysql
+        sudo systemctl start mysql
+        sudo mysql --execute="ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'rootpassword';"
+        sudo mysql --execute="CREATE DATABASE IF NOT EXISTS voipmonitor;"
+        sudo mysql --execute="CREATE USER 'voipuser'@'localhost' IDENTIFIED BY 'voippassword';"
+        sudo mysql --execute="GRANT ALL PRIVILEGES ON voipmonitor.* TO 'voipuser'@'localhost';"
+        sudo mysql --execute="FLUSH PRIVILEGES;"
 
     - name: Build VoIPmonitor
       run: |
