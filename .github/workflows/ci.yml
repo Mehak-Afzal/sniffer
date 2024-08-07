@@ -3,7 +3,7 @@ name: VoIPmonitor CI
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
     branches:
       - main
@@ -60,7 +60,7 @@ jobs:
     - name: Install Build Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y g++ libpcap-dev libmysqlclient-dev libcurl4-openssl-dev libssl-dev make libvorbis-dev
+        sudo apt-get install -y g++ libpcap-dev libmysqlclient-dev libcurl4-openssl-dev libssl-dev make libvorbis-dev libsnappy-dev
 
     - name: Configure VoIPmonitor
       run: |
