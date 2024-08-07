@@ -60,25 +60,22 @@ jobs:
     - name: Install Build Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake g++ libpcap-dev libmysqlclient-dev libcurl4-openssl-dev libssl-dev
+        sudo apt-get install -y g++ libpcap-dev libmysqlclient-dev libcurl4-openssl-dev libssl-dev make
 
     - name: Build VoIPmonitor
       run: |
-        mkdir -p build
-        cd build
-        cmake ../simpleini
+        make -C simpleini
         make
 
     - name: Run tests
       run: |
-        cd build
         make test
 
     - name: Run VoIPmonitor
       run: |
         sudo mkdir -p /etc/voipmonitor
         echo -e "user=root\npassword=rootpassword\nhost=localhost\ndatabase=voipmonitor" | sudo tee /etc/voipmonitor.conf
-        sudo build/voipmonitor --config-file /etc/voipmonitor.conf --pidfile /var/run/voipmonitor.pid --daemon
+        sudo ./voipmonitor --config-file /etc/voipmonitor.conf --pidfile /var/run/voipmonitor.pid --daemon
 
     - name: Verify VoIPmonitor is running
       run: |
