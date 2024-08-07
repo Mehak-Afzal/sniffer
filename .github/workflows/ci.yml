@@ -1,4 +1,4 @@
-name: VoIPmonitor CI
+name: Build and Test
 
 on:
   push:
@@ -6,96 +6,35 @@ on:
       - master
   pull_request:
     branches:
-      - main
+      - master
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
+    - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Remove conflicting packages
-      run: |
-        sudo apt-get remove -y containerd containerd.io
-        sudo apt-get autoremove -y
-
-    - name: Clean up and update
-      run: |
-        sudo apt-get clean
-        sudo rm -rf /var/lib/apt/lists/*
-        sudo apt-get update
-
-    - name: Fix broken dependencies
-      run: sudo apt-get install -f
-
-    - name: Upgrade installed packages
-      run: sudo apt-get upgrade -y
-
-    - name: Reconfigure packages
-      run: sudo dpkg --configure -a
-
-    - name: Install Docker
+    - name: Set up dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y docker.io
+        sudo apt-get install -y libmysqlclient-dev cmake make g++ pkg-config libpcap-dev libvorbis-dev libsnappy-dev libfftw3-dev libjson-c-dev
 
-    - name: Start MySQL Docker Container
-      run: |
-        sudo docker run --name mysql -e MYSQL_ROOT_PASSWORD=rootpassword -e MYSQL_DATABASE=voipmonitor -e MYSQL_USER=voipuser -e MYSQL_PASSWORD=voippassword -p 3306:3306 -d mysql:8.0
-
-    - name: Wait for MySQL to be ready
-      run: |
-        for i in {1..30}; do
-          if sudo docker exec mysql mysqladmin ping -h"localhost" --silent; then
-            echo "MySQL is up and running!"
-            break
-          else
-            echo "Waiting for MySQL..."
-            sleep 5
-          fi
-        done
-
-    - name: Install Build Dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y g++ libpcap-dev libmysqlclient-dev libcurl4-openssl-dev libssl-dev make libvorbis-dev libsnappy-dev
-
-    - name: Configure VoIPmonitor
+    - name: Run configure
       run: |
         if [ -f ./configure ]; then
           ./configure
-        else
-          echo "./configure script not found in the root directory"
-          exit 1
         fi
 
-    - name: Clean previous builds
-      run: make clean
-
-    - name: Build VoIPmonitor
-      run: make -j$(nproc --all)
-
-    - name: Install VoIPmonitor
-      run: sudo make install
+    - name: Build and install
+      run: |
+        make clean
+        make -j$(nproc)
+        sudo make install
 
     - name: Run tests
       run: |
-        if [ -f Makefile ]; then
-          make test
-        else
-          echo "No Makefile found in the root directory"
-          exit 1
+        if [ -f ./test ]; then
+          ./test
         fi
-
-    - name: Run VoIPmonitor
-      run: |
-        sudo mkdir -p /etc/voipmonitor
-        echo -e "user=root\npassword=rootpassword\nhost=localhost\ndatabase=voipmonitor" | sudo tee /etc/voipmonitor.conf
-        sudo ./voipmonitor --config-file /etc/voipmonitor.conf --pidfile /var/run/voipmonitor.pid --daemon
-
-    - name: Verify VoIPmonitor is running
-      run: |
-        ps aux | grep voipmonitor
-        sudo netstat -tuln | grep 5029  # Adjust this port if necessary
