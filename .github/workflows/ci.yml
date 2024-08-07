@@ -16,6 +16,15 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
+    - name: Clean up package lists
+      run: |
+        sudo apt-get clean
+        sudo rm -rf /var/lib/apt/lists/*
+        sudo apt-get update
+
+    - name: Fix broken packages
+      run: sudo apt-get install -f
+
     - name: Install Docker
       run: |
         sudo apt-get update
