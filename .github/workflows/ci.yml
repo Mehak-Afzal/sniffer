@@ -19,7 +19,7 @@ jobs:
     - name: Set up dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y libmysqlclient-dev cmake make g++ pkg-config libpcap-dev libvorbis-dev libsnappy-dev libfftw3-dev libjson-c-dev
+        sudo apt-get install -y libmysqlclient-dev cmake make g++ pkg-config libpcap-dev libvorbis-dev libsnappy-dev libfftw3-dev libjson-c-dev libcurl4-openssl-dev
 
     - name: Run configure
       run: |
