@@ -64,7 +64,6 @@ jobs:
 
     - name: Build VoIPmonitor
       run: |
-        make -C simpleini
         make
 
     - name: Run tests
