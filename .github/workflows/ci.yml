@@ -3,7 +3,7 @@ name: VoIPmonitor CI
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
     branches:
       - main
@@ -62,13 +62,32 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y g++ libpcap-dev libmysqlclient-dev libcurl4-openssl-dev libssl-dev make
 
-    - name: Build VoIPmonitor
+    - name: Configure VoIPmonitor
       run: |
-        make
+        if [ -f ./configure ]; then
+          ./configure
+        else
+          echo "./configure script not found in the root directory"
+          exit 1
+        fi
+
+    - name: Clean previous builds
+      run: make clean
+
+    - name: Build VoIPmonitor
+      run: make -j$(nproc --all)
+
+    - name: Install VoIPmonitor
+      run: sudo make install
 
     - name: Run tests
       run: |
-        make test
+        if [ -f Makefile ]; then
+          make test
+        else
+          echo "No Makefile found in the root directory"
+          exit 1
+        fi
 
     - name: Run VoIPmonitor
       run: |
